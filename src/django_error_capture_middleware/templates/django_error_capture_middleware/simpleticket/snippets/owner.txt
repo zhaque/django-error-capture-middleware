@@ -1,0 +1,7 @@
+<a href="#" onClick="take_ticket({{ error.id }});" id="owner_{{ error.id }}">
+{% if error.owner %}
+    {{ error.owner }}
+{% else %} 
+    Nobody
+{% endif %}
+</a>

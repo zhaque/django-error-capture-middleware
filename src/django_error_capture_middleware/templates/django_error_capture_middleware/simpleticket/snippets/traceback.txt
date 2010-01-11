@@ -1,0 +1,5 @@
+{% load stylize %}
+
+{% stylize "python" %}
+    {{ error.traceback }}
+{% endstylize %}

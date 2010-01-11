@@ -1,0 +1,164 @@
+General
+=======
+ * *URL*: http://bitbucket.org/ashcrow/django-error-capture-middleware/
+ * *License*: New BSD License
+ * *Authors*: See AUTHORS file
+
+Requirements
+============
+
+ * Django 1.1.0 (may work on older versions)
+ * PyYAML 3+
+ * Python 2.4+
+
+
+Special Instructions
+--------------------
+Some handlers need more non-standard libraries.
+
+
+Bugzilla
+--------
+
+ * python-bugzilla (https://fedorahosted.org/python-bugzilla/)
+
+
+Google Code
+-----------
+
+ * gdata (http://code.google.com/p/gdata-python-client/downloads/list)
+
+
+SimpleTicket
+------------
+
+ * JQuery 1.3.2+
+ * Pygments (Optional)
+
+
+Required Settings
+=================
+
+ * ERROR_CAPTURE_HANDLERS: Tuple listing all handler packages to execute. The last
+   package is expected to return information back to the user!
+ * ERROR_CAPTURE_ENABLE_MULTPROCESS: Turns on multiprocessing. This will speed up
+   the time between and error and when the user sees it, but can return faster
+   than the bug system can return.
+ * ERROR_CAPTURE_NOOP_ON_DEBUG: Boolean defining whether to iterate through the
+   handlers when DEBUG=True
+
+
+Optional Settings
+=================
+If you do not use these settings it is recommended to not define them at all in
+your settings. By defininf them empty, you may get a slight performance drop
+due to importing of libraries (for instance, ERROR_CAPTURE_TRACE_CLASS_BLACKLIST
+will import the regular expression library.
+
+ * ERROR_CAPTURE_TRACE_CONTENT_BLACKLIST: Strings which can be compiled into regular
+   expressions can be put in this tuple. If the content of a traceback matches, this
+   exception will be passed directly back to django for normal processing.
+ * ERROR_CAPTURE_TRACE_CLASS_BLACKLIST: Actual classes to black list (not strings). For
+   instance you may import the exceptions library and place exceptions.TypeError in
+   this tuple to pass all type errors back to django for normal processing.
+
+
+Handlers
+========
+
+Email
+-----
+Sends an email to the admins on traceback.
+
+*Package*: django_error_capture_middleware.handlers.email.EmailHandler
+
+Settings
+````````
+ * ERROR_CAPTURE_ADMINS: who the email goes to. This should be a tuple of
+   email addresses. Also be sure to delete the ADMINS tuple otherwise
+   Django's internal error emails will still be sent.
+ * ERROR_CAPTURE_EMAIL_FAIL_SILENTLY: False to throw exception if the email doesn't get sent.
+ * SERVER_EMAIL: address the email comes from (optional)
+
+
+Templates
+````````
+ * subject.txt - Template for the subject. This file should not contain new line
+characters
+ * body.txt - Template for the body of the email.
+
+Templates
+````````
+ * subject.txt - Template for the subject. This file should not contain new line characters
+ * body.txt - Template for the body of the email.
+
+
+Bugzilla
+--------
+Posts tracebacks to a Bugzilla instance with XMLRPC.
+
+*Package*: django_error_capture_middleware.handlers.bz.BugzillaHandler
+
+Settings
+````````
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_SERVICE: Url to the Bugzilla XMLRPC service
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_USERNAME: Username to log in with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_PASSWORD: Password to authenticate withj
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_PRODUCT: Product to associate with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_COMPONENT: Component to associate with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_VERSION: Version to associate with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_PLATFORM: Platform to associate with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_SEVERITY: Severity of the bug
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_OS: Operating System to associate with
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_LOC: ... not sure (leave '')
+ * ERROR_CAPTURE_GOOGLE_BUGZILLA_PRIORITY: Priority of the bug
+
+
+GitHub
+------
+Posts tracebacks to the GitHub issues system.
+
+*Package*: django_error_capture_middleware.handlers.github.GitHubHandler
+
+Settings
+````````
+ * ERROR_CAPTURE_GITHUB_REPO: repository in user/codebase format
+ * ERROR_CAPTURE_GITHUB_TOKEN: Your API token
+ * ERROR_CAPTURE_GITHUB_LOGIN: Your user login
+ * ERROR_CAPTURE_IGNORE_DUPE_SEC: The number of seconds to ignore duplicate
+   exceptions.
+
+Templates
+`````````
+ * title.txt - Template for the title of the ticket.
+ * body.txt - Template for the body of the ticket. You can use Github Flavored Markdown.
+
+
+Google Code
+-----------
+Posts tracebacks to the Google Code issues systems.
+
+*Package*: django_error_capture_middleware.handlers.google_code.GoogleCodeHandler
+
+Settings
+````````
+ * ERROR_CAPTURE_GOOGLE_CODE_PROJECT: project to post to
+ * ERROR_CAPTURE_GOOGLE_CODE_LOGIN: Your account username
+ * ERROR_CAPTURE_GOOGLE_CODE_PASSWORD: Your account password
+ * ERROR_CAPTURE_GOOGLE_CODE_TYPE: Type of issue you want to flag as
+
+Templates
+`````````
+ * title.txt - Template for the title of the ticket.
+ * body.txt - Template for the body of the ticket.
+
+
+SimpleTicket
+============
+Really simple ticket system for tracebacks. Mainly created as a demo.
+
+*Package*: django_error_capture_middleware.handlers.simple_ticket.SimpleTicketHandler
+
+Settings
+````````
+No special settings required.

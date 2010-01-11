@@ -1,0 +1,21 @@
+{% extends "django_error_capture_middleware/simpleticket/base.html" %}
+
+{% block scripts%}
+<script src="/simple/media/js/jquery-1.3.2.min.js"></script>
+<script>
+    {% include "django_error_capture_middleware/simpleticket/ajax.js" %}
+</script>
+{% endblock %}
+
+{% block title %}Ticket {{ error.id }}{% endblock %}
+
+{% block content %}
+<ul>
+<li>ID: {{ error.id }}</li>
+<li>Date: {% include "django_error_capture_middleware/simpleticket/snippets/timestamp.txt" %}</li>
+<li>Owner: {% include "django_error_capture_middleware/simpleticket/snippets/owner.txt" %}</li>
+<li>User: {% include "django_error_capture_middleware/simpleticket/snippets/user.txt" %}</li>
+<li>Resolved: {% include "django_error_capture_middleware/simpleticket/snippets/resolved.txt" %}</li>
+</ul>
+{% include "django_error_capture_middleware/simpleticket/snippets/traceback.txt" %}
+{% endblock %}

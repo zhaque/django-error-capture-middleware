@@ -1,0 +1,6 @@
+include AUTHORS
+include LICENSE
+include README
+include MANIFEST.in
+include COPYING
+recursive-include src/django_error_capture_middleware/templates/ *

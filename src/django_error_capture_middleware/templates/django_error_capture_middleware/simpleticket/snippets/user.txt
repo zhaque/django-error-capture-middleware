@@ -1,0 +1,9 @@
+{% if error.user %}
+    {% if error.user.email %}
+        <a href="mailto:{{ error.user.email }}">{{ error.user }}</a>
+    {% else %}
+        {{ error.user }}
+    {% endif %}
+{% else %} 
+    Anonymous
+{% endif %}

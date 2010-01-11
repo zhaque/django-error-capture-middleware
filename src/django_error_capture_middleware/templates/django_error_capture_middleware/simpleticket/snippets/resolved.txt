@@ -1,0 +1,7 @@
+<a href="#" onClick="toggle_resolved({{ error.id }});" id="resolved_{{ error.id }}">
+{% if error.resolved %}
+    True
+{% else %}
+    False
+{% endif %}
+</a>
