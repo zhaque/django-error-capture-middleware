@@ -36,7 +36,6 @@ __docformat__ = 'restructuredtext'
 
 
 import yaml
-import urllib
 
 from django.conf import settings
 from django.template import loader
@@ -52,6 +51,8 @@ class GitHubHandler(ErrorCaptureHandler):
     """
     GitHub handler.
     """
+
+    import urllib
 
     required_settings = ['ERROR_CAPTURE_GITHUB_REPO',
         'ERROR_CAPTURE_GITHUB_TOKEN', 'ERROR_CAPTURE_GITHUB_LOGIN']
@@ -80,15 +81,19 @@ class GitHubHandler(ErrorCaptureHandler):
             'title': title_tpl.render(self.context),
             'body': body_tpl.render(self.context),
         }
-        # Worker function
 
-        def get_data(queue):
+        # Worker function
+        # NOTE: urllib is passed in since it's acting as a transport and
+        # needs to be available in class space to test
+
+        def get_data(queue, urllib):
             result = urllib.urlopen(url, urllib.urlencode(params)).read()
             # Remove !timestamp, it isn't valid YAML
             id = yaml.load(
                 result.replace('!timestamp', ''))['issue']['number']
             queue.put_nowait(id)
-        queue, process = self.background_call(get_data)
+        queue, process = self.background_call(
+            get_data, kwargs={'urllib': self.urllib})
         id = self.get_data(queue)
         self.context['bug_url'] = issue_url + str(id)
         self.context['id'] = id

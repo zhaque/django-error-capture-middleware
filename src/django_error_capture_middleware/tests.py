@@ -35,13 +35,22 @@ Unittests.
 __docformat__ = 'restructuredtext'
 
 
+import re
 import time
 import sys
 import traceback
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 from django.conf import settings
+from django import http
 from django.test import TestCase, client
 from django.test.client import Client
+
+from minimock import Mock
 
 from django_error_capture_middleware import (ErrorCaptureMiddleware,
     ErrorCaptureHandler, threading, thread_cls, Queue, queue_mod)
@@ -112,6 +121,28 @@ class ErrorCaptureMiddlewareTestCase(TestCasePlus):
         """
         self.assertEquals(self.instance.traceback, traceback)
         self.assertTrue(hasattr(self.instance, 'process_exception'))
+
+    def test_process_exception(self):
+        """
+        Tests processing of exceptions.
+        """
+        # Getting a 404 should raise it back
+        self.assertRaises(http.Http404, self.instance.process_exception,
+            None, http.Http404())
+
+        # Test class blacklist
+        exc = self._raise_and_get_exception()
+        settings.ERROR_CAPTURE_TRACE_CLASS_BLACKLIST = (type(Exception), )
+        self.assertRaises(
+            Exception, self.instance.process_exception, None, exc)
+        settings.ERROR_CAPTURE_TRACE_CLASS_BLACKLIST = tuple()
+
+        # Test content blacklist
+        settings.ERROR_CAPTURE_TRACE_CONTENT_BLACKLIST = (
+            re.compile('.*test.*'), )
+        self.assertRaises(
+            Exception, self.instance.process_exception, None, exc)
+        settings.ERROR_CAPTURE_TRACE_CONTENT_BLACKLIST = tuple()
 
 
 class _ParentTicketHandlerMixIn(object):
@@ -256,16 +287,18 @@ class EmailHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
         with fail silent since we are testing the handler and not
         the ability of the system to send email.
         """
-        settings.ERROR_CAPTURE_ADMINS = tuple('user@localhost')
-        settings.ERROR_CAPTURE_EMAIL_FAIL_SILENT = True
+        # Setup the mock
+        send_mail = Mock('send_mail', returns=True, tracker=None)
+
+        settings.ERROR_CAPTURE_ADMINS = 'user@localhost'
+        settings.ERROR_CAPTURE_EMAIL_FAIL_SILENT = False
         super(EmailHandlerTestCase, self).setUp()
+        self.instance.send_mail = send_mail
 
 
 class GitHubHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
     """
     Tests for GitHub handler.
-
-    TODO: flesh this test out more.
     """
 
     test_cls = github.GitHubHandler
@@ -274,17 +307,21 @@ class GitHubHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
         """
         Adds required temporary setting for the test.
         """
-        settings.ERROR_CAPTURE_GITHUB_REPO = ''
-        settings.ERROR_CAPTURE_GITHUB_TOKEN = ''
-        settings.ERROR_CAPTURE_GITHUB_LOGIN = ''
+        # Setup the mock
+        response = StringIO('issue:\n    number: 123')
+        urllib = Mock('urllib', tracker=None)
+        urllib.urlopen = Mock('urllib.urlopen', returns=response, tracker=None)
+
+        settings.ERROR_CAPTURE_GITHUB_REPO = 'fake_repo'
+        settings.ERROR_CAPTURE_GITHUB_TOKEN = 'fake_token'
+        settings.ERROR_CAPTURE_GITHUB_LOGIN = 'fake_login'
         super(GitHubHandlerTestCase, self).setUp()
+        self.instance.urllib = urllib
 
 
 class GoogleCodeHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
     """
     Tests for Google Code handler.
-
-    TODO: flesh this test out more.
     """
 
     test_cls = google_code.GoogleCodeHandler
@@ -293,18 +330,30 @@ class GoogleCodeHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
         """
         Adds required temporary setting for the test.
         """
-        settings.ERROR_CAPTURE_GOOGLE_CODE_PROJECT = ''
-        settings.ERROR_CAPTURE_GOOGLE_CODE_LOGIN = ''
-        settings.ERROR_CAPTURE_GOOGLE_CODE_PASSWORD = ''
-        settings.ERROR_CAPTURE_GOOGLE_CODE_TYPE = ''
+        # Setup the mock
+        result_impl = Mock('result_impl', tracker=None)
+        result_impl.find_html_link = Mock('find_html_link',
+            returns='http://www.example.dom/123/?id=123', tracker=None)
+        client_impl = Mock('gdata.projecthosting.client', tracker=None)
+        client_impl.add_issue = Mock(
+            'add_issue', returns=result_impl, tracker=None)
+        client_impl.client_login = Mock(
+            'client_login', returns=True, tracker=None)
+        gdata_client = Mock(
+            'ProjectHostingClient', returns=client_impl, tracker=None)
+
+        settings.ERROR_CAPTURE_GOOGLE_CODE_PROJECT = 'fake_project'
+        settings.ERROR_CAPTURE_GOOGLE_CODE_LOGIN = 'fake_login'
+        settings.ERROR_CAPTURE_GOOGLE_CODE_PASSWORD = 'fake_password'
+        settings.ERROR_CAPTURE_GOOGLE_CODE_TYPE = 'fake_type'
         super(GoogleCodeHandlerTestCase, self).setUp()
+        self.instance.gdata.projecthosting.client.ProjectHostingClient = (
+            gdata_client)
 
 
 class BugzillaHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
     """
     Tests for Google Code handler.
-
-    TODO: flesh this test out more.
     """
 
     test_cls = bz.BugzillaHandler
@@ -313,15 +362,22 @@ class BugzillaHandlerTestCase(_ParentTicketHandlerMixIn, TestCasePlus):
         """
         Adds required temporary setting for the test.
         """
+        # Setup the mock
+        BzImpl = Mock('bz.Bugzilla', tracker=None)
+        BzImpl.createbug = Mock('BzImpl.createbug',
+            returns=Jelly(bug_id=123, url='http'), tracker=None)
+        Bugzilla = Mock('bz.Bugzilla', returns=BzImpl, tracker=None)
+
         settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_SERVICE = 'http://example.com/'
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_USERNAME = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PASSWORD = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PRODUCT = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_COMPONENT = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_VERSION = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PLATFORM = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_SEVERITY = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_OS = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_LOC = ''
-        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PRIORITY = ''
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_USERNAME = 'fake_user'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PASSWORD = 'fake_password'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PRODUCT = 'fake_product'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_COMPONENT = 'fake_component'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_VERSION = 'fake_version'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PLATFORM = 'fake_platform'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_SEVERITY = 'fake_severity'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_OS = 'fake_os'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_LOC = 'fake_loc'
+        settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PRIORITY = 'fake_priority'
         super(BugzillaHandlerTestCase, self).setUp()
+        self.instance.Bugzilla = Bugzilla

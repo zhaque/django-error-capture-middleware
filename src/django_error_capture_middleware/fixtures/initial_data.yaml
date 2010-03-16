@@ -2,5 +2,5 @@
     name: Ticket Manager
     permissions: [32, 35, 33, 34]
   model: auth.group
-  pk: 2 
+  pk: 1
 

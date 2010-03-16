@@ -44,7 +44,8 @@ urlpatterns = patterns('')
 if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^simple/media/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': '../src/django_error_capture_middleware/media/'}),
+            {'document_root':
+                '../src/django_error_capture_middleware/media/'}),
     )
 
 

@@ -36,7 +36,6 @@ __docformat__ = 'restructuredtext'
 
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template import loader
 
 from django_error_capture_middleware import ErrorCaptureHandler
@@ -46,6 +45,8 @@ class EmailHandler(ErrorCaptureHandler):
     """
     Replacement email handler.
     """
+
+    from django.core.mail import send_mail
 
     required_settings = ['ERROR_CAPTURE_ADMINS',
         'ERROR_CAPTURE_EMAIL_FAIL_SILENTLY']
@@ -60,7 +61,7 @@ class EmailHandler(ErrorCaptureHandler):
            - `tb`: traceback string
         """
 
-        def get_data(context, queue):
+        def get_data(context, queue, send_mail):
             subject_tpl = loader.get_template(
                 'django_error_capture_middleware/email/subject.txt')
             body_tpl = loader.get_template(
@@ -85,5 +86,6 @@ class EmailHandler(ErrorCaptureHandler):
 
             send_mail(subject, body, from_email, settings.ERROR_CAPTURE_ADMINS,
                 fail_silently=settings.ERROR_CAPTURE_EMAIL_FAIL_SILENTLY)
+
         queue, process = self.background_call(get_data,
-            kwargs={'context': self.context})
+            kwargs={'context': self.context, 'send_mail': self.send_mail})

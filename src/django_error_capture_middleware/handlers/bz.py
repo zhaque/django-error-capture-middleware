@@ -35,7 +35,7 @@ Super simple ticket handler that uses the admin interface.
 __docformat__ = 'restructuredtext'
 
 
-from bugzilla import Bugzilla
+#from bugzilla import Bugzilla
 
 from django.conf import settings
 from django.template import loader
@@ -48,6 +48,7 @@ class BugzillaHandler(ErrorCaptureHandler):
     Bugzilla handler.
     """
 
+    from bugzilla import Bugzilla
     required_settings = [
         'ERROR_CAPTURE_GOOGLE_BUGZILLA_SERVICE',
         'ERROR_CAPTURE_GOOGLE_BUGZILLA_USERNAME',
@@ -74,7 +75,7 @@ class BugzillaHandler(ErrorCaptureHandler):
 
         def get_data(queue):
             # Create a client and login
-            bz = Bugzilla(
+            bz = self.Bugzilla(
                 url=settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_SERVICE)
             bz.login(settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_USERNAME,
                 settings.ERROR_CAPTURE_GOOGLE_BUGZILLA_PASSWORD)

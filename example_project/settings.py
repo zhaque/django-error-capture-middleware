@@ -36,7 +36,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('steve', 'steve@localhost'),
+    ('admin', 'root@localhost'),
 )
 
 MANAGERS = ADMINS
@@ -53,7 +53,7 @@ DATABASE_PORT = ''
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'America/New_York'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -107,7 +107,8 @@ ERROR_CAPTURE_ENABLE_MULTPROCESS = True
 ERROR_CAPTURE_HANDLERS = (
 #    'django_error_capture_middleware.handlers.github.GitHubHandler',
 #    'django_error_capture_middleware.handlers.email.EmailHandler',
-    'django_error_capture_middleware.handlers.simple_ticket.SimpleTicketHandler',
+    ('django_error_capture_middleware.handlers.'
+        'simple_ticket.SimpleTicketHandler'),
 #    'django_error_capture_middleware.handlers.google_code.GoogleCodeHandler',
 #    'django_error_capture_middleware.handlers.bz.BugzillaHandler',
 )

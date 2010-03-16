@@ -56,8 +56,22 @@ class TestCommand(Command):
     user_options = []
     initialize_options = finalize_options = lambda s: None
 
-    run = lambda s: execute_manager(settings)
-    run.__doc__ = "Execute the unittests."
+    def run(self):
+        """
+        Execute the unittests and run coverage if available.
+        """
+        try:
+            import coverage
+            cov = coverage.coverage()
+            cov.start()
+        except ImportError:
+            coverage = None
+        execute_manager(settings)
+        if coverage:
+            cov.stop()
+            cov.report(show_missing=False,
+                omit_prefixes=[os.path.sep + 'usr',
+                os.path.expanduser('~' + os.path.sep + '.local')])
 
 
 setup(

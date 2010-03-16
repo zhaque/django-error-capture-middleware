@@ -93,7 +93,6 @@ class ErrorCaptureMiddleware(object):
            - `request`: request that caused the exception
            - `exception`: actual exception being raised
         """
-
         # If this is a 404 ...
         if isinstance(exception, http.Http404):
             raise exception
