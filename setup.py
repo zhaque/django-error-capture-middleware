@@ -42,7 +42,7 @@ from setuptools import setup, find_packages, findall, Command
 
 sys.path.insert(0, 'src')
 
-from example_project.manage import execute_manager, settings
+#from example_project.manage import execute_manager, settings
 
 
 class TestCommand(Command):
@@ -109,7 +109,7 @@ setup(
         'Intended Audience :: System Administrators',
         'Programming Language :: Python',
     ],
-    cmdclass={
-        'test': TestCommand,
-    },
+#    cmdclass={
+#        'test': TestCommand,
+#    },
 )
